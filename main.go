@@ -41,9 +41,9 @@ func main() {
 	// Think of the dollar tree as a wildcard *
 	//Without it anything you type on the route will be
 	//redirected to go with home function
-	mux_router.HandleFunc("/{$}", home)
-	mux_router.HandleFunc("/snippet/view/{id}", snippetView)
-	mux_router.HandleFunc("/snippet/create", snippetCreate)
+	mux_router.HandleFunc("GET /{$}", home)
+	mux_router.HandleFunc("GET /snippet/view/{id}", snippetView)
+	mux_router.HandleFunc("GET /snippet/create", snippetCreate)
 
 	// Print a log message to say that the server is starting.
 	log.Print("Starting server on :4000")
