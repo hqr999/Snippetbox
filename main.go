@@ -24,19 +24,13 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 func snippetView(w http.ResponseWriter, r *http.Request) {
-	//Extract the value of the id wildcard from the request
-	//using r.PathValue() and try to convert it to an integer
-	//using strconv.Atoi() function. If it cant be converted
-	//to an integer, or the value is less than 3, we
-	//return a 404 page not found response
-
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || id < 1 {
 		http.NotFound(w, r)
 		return
 	}
-	msg := fmt.Sprintf("Display a specific snippet with ID %d...", id)
-	w.Write([]byte(msg))
+	//w.Write([]byte(msg)) old way 
+	fmt.Fprintf(w,"Display a specific snippet with ID %d...", id)
 
 }
 
