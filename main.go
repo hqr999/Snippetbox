@@ -9,12 +9,17 @@ import (
 
 
 func snippetCreatePost(w http.ResponseWriter, r *http.Request){
-		w.Write([]byte("Save a new snippet..."))
+	w.WriteHeader(http.StatusCreated)
+
+	w.Write([]byte("Save a new snippet..."))
 }
 
 // Define a home handler function which writes a byte slice containing
 // "Hello from Snippetbox" as the response body.
 func home(w http.ResponseWriter, r *http.Request) {
+	
+	w.Header().Add("Server","Go")
+
 	w.Write([]byte("Hello from Snippetbox"))
 }
 
