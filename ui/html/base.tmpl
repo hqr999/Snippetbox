@@ -11,6 +11,11 @@
 <body>
   <header>
     <h1><a href='/'>Snippetbox</a></h1>
+    <!-- Link to the CSS stylesheet and favicon -->
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="short cut icon" href="/static/img/favicon.ico" type="image/x-icon">
+    <!-- Also link to some fonts hosted by Google -->
+    <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700'>
   </header>
 
   {{template "navigation-bar" .}}
@@ -19,6 +24,7 @@
   </main>
   <footer>Powered by <a href='https://golang.org/'>Go</a></footer>
 </body>
-
+  <!-- And include the JavaScript file -->
+  <script src="/static/js/main.js"></script>
 </html>
 {{end}}
