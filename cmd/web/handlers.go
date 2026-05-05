@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"text/template"
+	//"html/template"
 
 	"github.com/hqr999/Snippetbox/internal/models"
 )
@@ -15,7 +15,16 @@ import (
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Server", "Go")
 
-	files_slice := []string{
+	snippets, err := app.snippets.Latest()
+	if err != nil {
+		app.serverError(w,r,err)
+		return
+	}
+
+	for _, snippet := range snippets {
+		fmt.Fprintf(w,"%+v\n",snippet)
+	}
+	/*files_slice := []string{
 		"./ui/html/base.tmpl",
 		"./ui/html/pages/home.tmpl",
 		"./ui/html/partials/nav.tmpl",
@@ -30,7 +39,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	err = ts.ExecuteTemplate(w, "base", nil)
 	if err != nil {
 		app.serverError(w, r, err) //Use the serverError() helper
-	}
+	}*/
 
 }
 
