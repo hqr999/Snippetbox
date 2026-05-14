@@ -12,18 +12,14 @@ import (
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Server", "Go")
-
-	//To render snippets the Latest snippets on the home page
-	/*
+	
 	snippets, err := app.snippets.Latest()
 	if err != nil {
-		app.serverError(w, r, err)
-		return
+		app.serverError(w,r,err)
+		return 
 	}
 
-	for _, snippet := range snippets {
-		fmt.Fprintf(w, "%+v\n", snippet)
-	}*/
+
 	files_slice := []string{
 		"./ui/html/base.tmpl",
 		"./ui/html/pages/home.tmpl",
@@ -36,7 +32,12 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = ts.ExecuteTemplate(w, "base", nil)
+	//Create an instance of a templateData struct holding the slice of 
+	//snippets.
+	data := templateData{Snippets: snippets}
+
+	//Pass in the templateData struct when executing the template.
+	err = ts.ExecuteTemplate(w, "base", data)
 	if err != nil {
 		app.serverError(w, r, err)
 	}
@@ -100,7 +101,8 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 	// during the build.
 	title := "O snail"
 	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n- Kobayashi Issa"
-	expires := 7
+	//expires := 7 Old config is just 7 days of validation will increase to 100 
+	expires := 100
 
 	// Pass the data to the SnippetModel.Insert() method,
 	// receiving the ID of the new record back.
