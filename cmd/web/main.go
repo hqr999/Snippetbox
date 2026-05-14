@@ -3,9 +3,11 @@ package main
 import (
 	"database/sql" //New Import
 	"flag"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
+
 	"github.com/hqr999/Snippetbox/internal/models"
 
 	_ "github.com/go-sql-driver/mysql" //New Import
@@ -16,17 +18,18 @@ import (
 type application struct {
 	logger *slog.Logger
 	snippets *models.SnippetModel
+	templateCache map[string]*template.Template
 }
 
 func main() {
 	addr := flag.String("addr", ":4000", "HTTP network address")
-	// Define a new command-line flag for the MySQL DSN string.
 	dsn := flag.String("dsn", "web:gintoki@/snippetbox?parseTime=true", "MySQL data source name")
 	flag.Parse()
 
+	
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
-	// To keep the main() function tidy I've put the code for creating a connection
-	// pool into the separate openDB() function below. We pass openDB() the DSN
+	
+
 	db, err := openDB(*dsn)
 	if err != nil {
 		logger.Error(err.Error())
@@ -35,20 +38,24 @@ func main() {
 
 	defer db.Close()
 
-	// Initialize a models.SnippetModel instance containing the 
-	//connection pool and add it to the application dependencies.
+	//Initialize a new template cache... 
+	cachePageTmpl, err := newTemplateCache()
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
+	//And add it to the application dependencies 
 	app := &application{
 		logger: logger,
 		snippets: &models.SnippetModel{DB: db},
+		templateCache: cachePageTmpl,
 	}
 
 	logger.Info("starting server", "addr", *addr)
 
-	// Because the err variable is now already declared in the code above, we need
-	// to use the assignment operator = here, instead of the := 'declare and assign'
-	// operator.
+	
 	err = http.ListenAndServe(*addr, app.routes())
-
 	logger.Error(err.Error())
 	os.Exit(1)
 }
