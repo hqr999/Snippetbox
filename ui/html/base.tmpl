@@ -22,9 +22,11 @@
   <main>
     {{template "main" .}}
   </main>
-  <footer>Powered by <a href='https://golang.org/'>Go</a></footer>
-</body>
-  <!-- And include the JavaScript file -->
+
+  <!--Update the footer to include the current year-->
+  <footer>Powered by <a href='https://golang.org/'>Go</a> in {{.CurrYear}}</footer>
   <script src="/static/js/main.js"></script>
+</body>
+
 </html>
 {{end}}
