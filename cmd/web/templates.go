@@ -9,6 +9,7 @@ import (
 
 // Include a Snippets field in the templateData struct.
 type templateData struct {
+	CurrYear int
 	Snippet  models.Snippet
 	Snippets []models.Snippet
 }
