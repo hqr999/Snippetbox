@@ -1,6 +1,9 @@
 package main
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 func commonHeaders(prx http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -31,6 +34,29 @@ func (dx *application) logRequest(prx http.Handler) http.Handler {
 		dx.logger.Info("request has been received", "ip", ip, "proto", proto, "method", method, "uri", uri)
 
 		prx.ServeHTTP(w, r)
+	})
+
+}
+
+func (app *application) recoverPanic(prx http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Create a deferred function (which will always be r
+		//	un in the event of a panic as Go unwinds the stack)
+		defer func() {
+			// Use the built-in recover func to check if there has
+			// been a panic or not. If there has...
+			if err := recover(); err != nil {
+				// Set a "Connection: close" header on the response;
+				w.Header().Set("Connection", "close")
+				//Cal the app.serverError helper method to return a 500
+				// Internal Server response.
+				app.serverError(w, r, fmt.Errorf("%s", err))
+
+			}
+
+		}()
+		prx.ServeHTTP(w, r)
+
 	})
 
 }
