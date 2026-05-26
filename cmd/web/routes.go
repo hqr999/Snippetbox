@@ -16,8 +16,8 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("GET /snippet/create", app.snippetCreate)
 	mux.HandleFunc("POST /snippet/create", app.snippetCreatePost)
 
-	//Wrap the existing chain (the commonHeader) inside the logRequest middlewar
-	wrapped_handler := app.logRequest(commonHeaders(mux))
+	//Wrap the existing chain with the recoverPanic middleware
+	wrapped_handler := app.recoverPanic(app.logRequest(commonHeaders(mux)))
 
 	return wrapped_handler
 }
