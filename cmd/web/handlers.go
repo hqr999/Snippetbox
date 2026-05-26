@@ -10,22 +10,16 @@ import (
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Server", "Go")
-
 	snippets, err := app.snippets.Latest()
 	if err != nil {
 		app.serverError(w, r, err)
 		return
 	}
 	
-	  // Call the newTemplateData() helper to get a templateData struct containing
-	 // the 'default' data (which for now is just the current year), and add the
-	// snippets slice to it.
 	data := app.newTemplateData(r)
 	data.Snippets = snippets
 
 
-	//Use the new render helper
 	app.render(w, r, http.StatusOK, "home.tmpl", data)
 
 }
