@@ -18,3 +18,19 @@ func commonHeaders(prx http.Handler) http.Handler {
 	})
 
 }
+
+func (dx *application) logRequest(prx http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var (
+			ip     = r.RemoteAddr
+			proto  = r.Proto
+			method = r.Method
+			uri    = r.URL.RequestURI()
+		)
+
+		dx.logger.Info("request has been received", "ip", ip, "proto", proto, "method", method, "uri", uri)
+
+		prx.ServeHTTP(w, r)
+	})
+
+}

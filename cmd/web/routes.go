@@ -16,10 +16,8 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("GET /snippet/create", app.snippetCreate)
 	mux.HandleFunc("POST /snippet/create", app.snippetCreatePost)
 
-	// Pass the servemux as the 'next' parameter to the commonHeaders middleware
-	// Because commonHeaders is just a function, and the function returns a 
-	// http.Handler we don´t need to do anything else.
-	wrapped_handler := commonHeaders(mux) 
+	//Wrap the existing chain (the commonHeader) inside the logRequest middlewar
+	wrapped_handler := app.logRequest(commonHeaders(mux))
 
 	return wrapped_handler
 }
