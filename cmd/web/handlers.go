@@ -15,10 +15,9 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, r, err)
 		return
 	}
-	
+
 	data := app.newTemplateData(r)
 	data.Snippets = snippets
-
 
 	app.render(w, r, http.StatusOK, "home.tmpl", data)
 
@@ -41,7 +40,7 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//And the same thing again here 
+	//And the same thing again here
 	data := app.newTemplateData(r)
 	data.Snippet = snippet
 
@@ -50,7 +49,9 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Display a form for creating a new snippet..."))
+	data_tmpl := app.newTemplateData(r)
+
+	app.render(w, r, http.StatusOK, "create.tmpl", data_tmpl)
 
 }
 
