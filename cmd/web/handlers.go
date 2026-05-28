@@ -2,10 +2,9 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
-
+	"fmt"
 	"github.com/hqr999/Snippetbox/internal/models"
 )
 
@@ -55,25 +54,40 @@ func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// Change the signature of the snippetCreatePost handler so it is defined as a method
-// against *application.
 func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
-	// Create some variables holding dummy data. We will remove there later on
-	// during the build.
-	title := "O snail"
-	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n- Kobayashi Issa"
-	//expires := 7 Old config is just 7 days of validation will increase to 100
-	expires := 100
+		// First we call r.ParseForm() which adds any data in Post request bodies
+		// to the r.PostForm map. This also works in the same way for PUT and PATCH
+		// requests. If there are any errors, we use our app.ClientError() helper to
+		// send a 400 Bad Request response to the user.
+		err := r.ParseForm()
+		if err != nil {
+				app.clientError(w,http.StatusBadRequest)
+				return 
+		}
 
-	// Pass the data to the SnippetModel.Insert() method,
-	// receiving the ID of the new record back.
-	id, err := app.snippets.Insert(title, content, expires)
-	if err != nil {
-		app.serverError(w, r, err)
-		return
-	}
+		// Use the r.PostForm.Get() method to retrieve the title and content 
+		// from the r.PostForm map. 
+		title_snippet   := r.PostForm.Get("title")
+		content_snippet := r.PostForm.Get("content") 
 
-	// Redirect the user to the relevant page for the snippet.
-	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
+		// The r.PostForm.Get() method always returns the form data as a *string*.
+		// However, we are expecting our expires value to be a number, and want to 
+		// represent it in our Go code as an integer. So we need to manually convert 
+		// the form data to an integer using strconv.Atoi(), and send a 400 Bad
+		// Request response if the conversion falls.
+		expiration_snippet, err := strconv.Atoi(r.PostForm.Get("expires"))
+		if err != nil {
+			app.clientError(w,http.StatusBadRequest)
+			return 
+
+		}
+
+		id, err := app.snippets.Insert(title_snippet,content_snippet,expiration_snippet)
+		if err != nil {
+				app.serverError(w,r,err)
+				return
+		}
+	
+		http.Redirect(w,r,fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 
 }
