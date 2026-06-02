@@ -13,6 +13,7 @@ type templateData struct {
 	CurrYear int
 	Snippet  models.Snippet
 	Snippets []models.Snippet
+	Form 		 any
 }
 
 
