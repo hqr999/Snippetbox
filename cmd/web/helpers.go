@@ -2,10 +2,13 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"runtime/debug"
 	"time"
+
+	"github.com/go-playground/form/v4"
 )
 
 func (app *application) serverError(w http.ResponseWriter, r *http.Request, err error) {
@@ -33,36 +36,52 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 		return
 	}
 
-	//Initializing a new buffer
 	buf := new(bytes.Buffer)
-
-	//Write the template to the buffer, instead of straight to the
-	//http.ResponseWriter. If there is an error, call our ServerError() helper
-	//and then return.
 	err := ts.ExecuteTemplate(buf, "base", data)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
 	}
 
-	//If the template is written to the buffer without any errors, we are safe
-	//to go ahead and write the HTTP status code to http.ResponseWrter
 	w.WriteHeader(status)
 
-	//Write the contents of the buffer to the http.ResponseWriter. Note: this
-	// is another time where we pass our http.ResponseWriter to a function that
-	//takes an io.Writer
 	buf.WriteTo(w)
 }
 
 
 
-// Create an newTemplateData() helper, which returns a templateData struct
-// initialized with the current year. Note that we're not using the *http.Request
-// parameter here at the moment, but we will do later in the project.
 func (app *application) newTemplateData(r *http.Request)templateData {
 		return templateData{
 				CurrYear: time.Now().Year(),
 		}
 		
+}
+
+
+//Create a new decodePostForm() helper method. The second parameter here, dst, 
+//is the target destination into which we want to decode the form data.
+func (app *application) decodePostForm(r *http.Request, dst any) error {
+	//Call ParseForm() on the request, in the same way that we did in our 
+	// SnippetCreatePost handler. 
+	err := r.ParseForm() 
+	if err != nil {
+		return err 
+	}
+	
+	//Call Decode() on our decoder instance, pass the target destination as 
+	//the first parameter. 
+	err = app.formDecoder.Decode(dst, r.PostForm)
+	if err != nil {
+		//If we try to use an invalid target destination, the Decode() method 
+		//will return an error with the type form.InvalidDcodeError. We use 
+		//errors.AsType() to check for this and panic. At the end of this 
+		//chapter we will talk about panicking versus returning errors, and
+		//discuss why it is an appropriate thing to do this specific situation. 
+		if _,ok := errors.AsType[*form.InvalidDecoderError](err);ok {
+			panic(err)
+		}
+	}
+
+	//For all other errors, return them as normal 
+	return err 
 }

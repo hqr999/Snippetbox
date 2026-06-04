@@ -10,15 +10,16 @@ import (
 
 	"github.com/hqr999/Snippetbox/internal/models"
 
+	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql" //New Import
 )
 
-// Add a snippets field to the application struct. This will
-// allow us to make the application the SnippetModel available to our handlers.
+//Add a formDecoder field to hold a pointer to a form.Decoder instance
 type application struct {
 	logger *slog.Logger
 	snippets *models.SnippetModel
 	templateCache map[string]*template.Template
+	formDecoder *form.Decoder 
 }
 
 func main() {
@@ -38,18 +39,20 @@ func main() {
 
 	defer db.Close()
 
-	//Initialize a new template cache... 
 	cachePageTmpl, err := newTemplateCache()
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
+	
+	formDecoder := form.NewDecoder()
 
-	//And add it to the application dependencies 
+	// And add it to the application dependencies.
 	app := &application{
 		logger: logger,
 		snippets: &models.SnippetModel{DB: db},
 		templateCache: cachePageTmpl,
+		formDecoder: formDecoder,
 	}
 
 	logger.Info("starting server", "addr", *addr)
