@@ -6,9 +6,9 @@
       <label>
           Title:
       </label>
-      <!-- Use the 'with' action to render the value of .Form.FieldErrors.title 
+      <!-- Use the 'with' action to render the value of .Form.Field_of_Errors.title 
       if it is not empty. -->
-      {{with .Form.FieldErrors.title}}
+      {{with .Form.Field_of_Errors.title}}
         <label class="error">{{.}}</label>
       {{end}}
       <!-- repopulate the title data by setting the 'value' attribute -->
@@ -18,8 +18,8 @@
       <label>
         Content:
       </label>
-      <!-- Likewise render the value of .Form.FieldErrors.content if it is empty. -->
-      {{with .Form.FieldErrors.content}}
+      <!-- Likewise render the value of .Form.Field_of_Errors.content if it is empty. -->
+      {{with .Form.Field_of_Errors.content}}
         <label class="error">{{.}}</label>
       {{end}}
       <!-- Repopulate the content field by setting it as the inner HTML of the textarea -->
@@ -29,8 +29,8 @@
       <label>
         Delete in:
       </label>
-      <!-- And render the value of .Form.FieldErrors.expiration-option if it is not empty. -->
-      {{with .Form.FieldErrors.expires}}
+      <!-- And render the value of .Form.Field_of_Errors.expiration-option if it is not empty. -->
+      {{with .Form.Field_of_Errors.expires}}
         <label class="error">{{.}}</label>
       {{end}}
       <!-- Here we use the 'if' action to check if the 
