@@ -20,10 +20,13 @@
 
   {{template "navigation-bar" .}}
   <main>
+    {{with .Flash}}
+        <div class="flash">{{.}}</div>
+    {{end}}
+
     {{template "main" .}}
   </main>
 
-  <!--Update the footer to include the current year-->
   <footer>Powered by <a href='https://golang.org/'>Go</a> in {{.CurrYear}}</footer>
   <script src="/static/js/main.js"></script>
 </body>
