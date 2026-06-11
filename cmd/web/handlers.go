@@ -10,11 +10,7 @@ import (
 	"github.com/hqr999/Snippetbox/internal/validator"
 )
 
-//Update our snippetCreateForm struct to includer struct tags which tell the 
-//decoder how to map HTML form values into the different struct fields. So, for 
-//example, here we are telling the decoder to store the value from the HTML form 
-//input with the name "title" in the Title field. The struct tag `form:"-"`
-//tells the decoder to completely ignore a field during decoding.
+
 type snippetCreateForm struct {
 	Title   string `form:"title"`
 	Content string `form:"content"`
@@ -55,7 +51,6 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//And the same thing again here
 	data := app.newTemplateData(r)
 	data.Snippet = snippet
 
@@ -97,6 +92,10 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		app.serverError(w, r, err)
 		return
 	}
+
+	//Use the Put() method to add string value ("Snippet successfully"
+	//created") and the corresponding key ("flash") to the session data.
+	app.sessionMangaer.Put(r.Context(),"flash","Snippet successfully created!")
 
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 
