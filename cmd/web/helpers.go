@@ -42,6 +42,10 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 		app.serverError(w, r, err)
 		return
 	}
+	//Deliberate error: set a Content-Length header with an invalid (non-integer) 
+	//value. -> Testing for the fact the default http.Server log format is different from ours.
+//	w.Header().Set("Content-Length","this isn´t an integer!")
+
 
 	w.WriteHeader(status)
 

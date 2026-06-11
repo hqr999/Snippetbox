@@ -69,7 +69,16 @@ func main() {
 	//Initialize a new http.Server struct. We set the Addr and Handler fields type so 
 	//that the server uses the same network address and routes as before
 
-	server := &http.Server{Addr: *addr,Handler: app.routes()}
+	server := &http.Server{
+		Addr: *addr,
+		Handler: app.routes(),
+		//Create a *log.Logger from our structured logger handler, which writes 
+		//log entries at the Error level, and assign it to the ErrorLog field. If 
+		//you would prefer to log on the server errors at Warn level instead, you 
+		//could pass slog.LevelWarn as the final paramter. 
+		ErrorLog: slog.NewLogLogger(logger.Handler(),slog.LevelError),
+			
+	}
 
 	logger.Info("starting server", "addr", server.Addr)
 
