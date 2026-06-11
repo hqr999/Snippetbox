@@ -11,8 +11,8 @@ import (
 
 	"github.com/hqr999/Snippetbox/internal/models"
 
-	"github.com/alexedwards/scs/mysqlstore" //New import
-	"github.com/alexedwards/scs/v2"         //New import
+	"github.com/alexedwards/scs/mysqlstore" 	
+	"github.com/alexedwards/scs/v2"         
 	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -51,10 +51,6 @@ func main() {
 	
 	formDecoder := form.NewDecoder()
 
-	//Use the scs.New() function to initialize a new session manager. Then we 
-	//configure it to use our MySQL database as the session store, and set a 
-	//lifetime of 12 hours (so that sessions automatically expire 12 hours 
-	//after first being created). 
 	sessionMan := scs.New()
 	sessionMan.Store = mysqlstore.New(db)
 	sessionMan.Lifetime = 12 * time.Hour
@@ -70,10 +66,17 @@ func main() {
 		sessionMangaer: sessionMan,
 	}
 
-	logger.Info("starting server", "addr", *addr)
+	//Initialize a new http.Server struct. We set the Addr and Handler fields type so 
+	//that the server uses the same network address and routes as before
+
+	server := &http.Server{Addr: *addr,Handler: app.routes()}
+
+	logger.Info("starting server", "addr", server.Addr)
 
 	
-	err = http.ListenAndServe(*addr, app.routes())
+	//Call the ListenAndServe() method on our new http.Server struct to start
+	//the server 
+	err = server.ListenAndServe()
 	logger.Error(err.Error())
 	os.Exit(1)
 }
