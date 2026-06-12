@@ -1,7 +1,8 @@
 package main
 
 import (
-	"database/sql" //New Import
+	"crypto/tls" //New import 
+	"database/sql" 
 	"flag"
 	"html/template"
 	"log/slog"
@@ -52,10 +53,6 @@ func main() {
 	sessionMan := scs.New()
 	sessionMan.Store = mysqlstore.New(db)
 	sessionMan.Lifetime = 12 * time.Hour
-	//Make sure the Secure attribute is set on our sessions cookies.
-	//Setting this means that the cookie will only be sent by a user´s web
-	//browser when an HTTPS connection is being used (and won´t be sent over an
-	//unsecure HTTP connection).
 	sessionMan.Cookie.Secure = true
 
 	app := &application{
@@ -65,11 +62,21 @@ func main() {
 		formDecoder:    formDecoder,
 		sessionMangaer: sessionMan,
 	}
+	//Initialize a tls.Config struct to hold the non-default TLS settings we
+	//want the server to use. In this case the only thing that we´re changing
+	//is the curve preference value, so that only elliptic curves with 
+	//assembly implementations are used. 
+	tlsConf := &tls.Config{
+			CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+	}
 
+	//See the servers TLSConfig field to use the tlsConfig variable we just 
+	//created.
 	server := &http.Server{
 		Addr:     *addr,
 		Handler:  app.routes(),
 		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
+		TLSConfig: tlsConf,
 	}
 
 	logger.Info("starting server", "addr", server.Addr)
