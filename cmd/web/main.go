@@ -1,8 +1,8 @@
 package main
 
 import (
-	"crypto/tls" //New import 
-	"database/sql" 
+	"crypto/tls" //New import
+	"database/sql"
 	"flag"
 	"html/template"
 	"log/slog"
@@ -22,6 +22,7 @@ import (
 type application struct {
 	logger         *slog.Logger
 	snippets       *models.SnippetModel
+	users          *models.UserModel
 	templateCache  map[string]*template.Template
 	formDecoder    *form.Decoder
 	sessionMangaer *scs.SessionManager
@@ -58,27 +59,23 @@ func main() {
 	app := &application{
 		logger:         logger,
 		snippets:       &models.SnippetModel{DB: db},
+		users:          &models.UserModel{DB: db},
 		templateCache:  cachePageTmpl,
 		formDecoder:    formDecoder,
 		sessionMangaer: sessionMan,
 	}
-	//Initialize a tls.Config struct to hold the non-default TLS settings we
-	//want the server to use. In this case the only thing that we´re changing
-	//is the curve preference value, so that only elliptic curves with 
-	//assembly implementations are used. 
+
 	tlsConf := &tls.Config{
-			CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
 	}
 
-	//See the servers TLSConfig field to use the tlsConfig variable we just 
-	//created.
 	server := &http.Server{
-		Addr:     *addr,
-		Handler:  app.routes(),
-		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
-		TLSConfig: tlsConf,
-		IdleTimeout: time.Minute,
-		ReadTimeout: 5 * time.Second,
+		Addr:         *addr,
+		Handler:      app.routes(),
+		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
+		TLSConfig:    tlsConf,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
 
