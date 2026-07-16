@@ -24,6 +24,12 @@ type userSignupForm struct {
 	validator.Validator `form:"-"`
 }
 
+type userLoginForm struct {
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
 func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Form = userSignupForm{}
@@ -48,7 +54,7 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	form.CheckField(validator.Matches(form.Email, validator.EmailRegex), "email", "This field must have a valid email like format")
 	form.CheckField(validator.NotBlank(form.Password), "password", "Field password cannot be blank")
 	form.CheckField(validator.MinChars(form.Password, 8), "password", "Field password has to be at least 8 characters long")
-	form.CheckField(validator.MaxBytes(form.Password, 72), "password", "Field password cannot be more than 72 bytes long")
+	form.CheckField(validator.MaxBytes(form.Password, 72), "password", "Field password cannot be bigger than 72 bytes long")
 
 	// If there are any errors, redisplay the signup form along with a 422 status code
 	if !form.Valid() {
@@ -72,23 +78,81 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 			app.serverError(w, r, err)
 		}
 
-		return 
+		return
 	}
 
-	// Otherwise add a confirmation flash message to the session confirming that 
-	// their signup worked. 
-	app.sessionManager.Put(r.Context(),"flash","Your signup was successful. Please log in")
+	// Otherwise add a confirmation flash message to the session confirming that
+	// their signup worked.
+	app.sessionManager.Put(r.Context(), "flash", "Your signup was successful. Please log in")
 
-	// And redirect the user to the login page. 
-	http.Redirect(w,r,"/user/login",http.StatusSeeOther)
+	// And redirect the user to the login page.
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Display a form for logging in a user...")
+	data := app.newTemplateData(r)
+	data.Form = userLoginForm{}
+	app.render(w, r, http.StatusOK, "login.tmpl", data)
+
 }
 
 func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Authenticate and login the user...")
+
+	var form userLoginForm
+
+	err := app.decodePostForm(r, &form)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	// Do some validation checks on the form. We check that both email and
+	// password are provided, and that the the format of the email address as
+	// a UX-nicety (in case the user makes a typo). We also again make sure that
+	// the password provided is no longer than 72 bytes to avoid any bcrypt
+	// truncation issues.
+	form.CheckField(validator.NotBlank(form.Email), "email", "Field email cannot be blank.")
+	form.CheckField(validator.Matches(form.Email, validator.EmailRegex), "email", "Field email must have a valid email address.")
+	form.CheckField(validator.NotBlank(form.Password), "password", "Field password cannot be blank.")
+	form.CheckField(validator.MaxBytes(form.Password, 72), "password", "Field password cannot be bigger than 72 bytes long.")
+
+	if !form.Valid() {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, r, http.StatusUnprocessableEntity, "login.tmpl", data)
+		return
+	}
+
+	// Check whether the credentials are valid. If they're not, add a generic
+	// non-field error message and redisplay the login page.
+	id, err := app.users.Authenticate(form.Email, form.Password)
+	if err != nil {
+		if errors.Is(err, models.ErrInvalidCredentials) {
+			form.AddNonFieldError("Email or password is incorrect")
+			data := app.newTemplateData(r)
+			data.Form = form
+			app.render(w, r, http.StatusUnprocessableEntity, "login.tmpl", data)
+		} else {
+			app.serverError(w, r, err)
+		}
+		return
+	}
+
+	// Use the RenewToken() method on the current session to change the session
+	// ID. It's good practice to generate a new session ID when the
+	// authentication state or privilege levels change for the user (e.g. login
+	// and logout operations).
+	err = app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.serverError(w, r, err)
+	}
+
+	// Add the ID of the current to the session, so that they are now
+	// 'logged in.'
+	app.sessionManager.Put(r.Context(), "authenticateUserID", id)
+
+	// Redirect the user to the create snippet page
+	http.Redirect(w, r, "/snippet/create", http.StatusSeeOther)
+
 }
 
 func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
