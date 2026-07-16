@@ -16,12 +16,21 @@ var EmailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-
 
 // Define a new validator struct which contains a map of validation error messages
 type Validator struct {
-	Field_of_Errors map[string]string
+	Non_Field_Errors []string
+	Field_of_Errors  map[string]string
 }
 
-// Valid() return true if the Field_of_Errors map doesn´t contain any entries
+// Update the Valid() method to also check that the NonFieldErrors slice is
+// empty.
 func (v *Validator) Valid() bool {
-	return len(v.Field_of_Errors) == 0
+	return len(v.Field_of_Errors) == 0 && len(v.Non_Field_Errors) == 0
+}
+
+
+// Create an AddNonFieldError() helper for adding error messages to the new 
+// Non_Field_Errors slice.
+func (v *Validator) AddNonFieldError(msg string)  {
+		v.Non_Field_Errors = append(v.Non_Field_Errors, msg)
 }
 
 // AddFieldError() adds an error message to the Field_of_Errors map (so long as no entry exists for the given key)
@@ -62,18 +71,18 @@ func PermittedValue[T comparable](value T, permittedValues ...T) bool {
 	return slices.Contains(permittedValues, value)
 }
 
-// MinChars() returns true if a value contains n characters or more 
+// MinChars() returns true if a value contains n characters or more
 func MinChars(val string, n int) bool {
 	return utf8.RuneCountInString(val) >= n
 }
 
-// MaxBytes() returns true if a value contains n bytes or less 
-func MaxBytes(val string,n int) bool  {
-	return len(val) <= n 
+// MaxBytes() returns true if a value contains n bytes or less
+func MaxBytes(val string, n int) bool {
+	return len(val) <= n
 }
 
-// Matches() returns true if a value matches a provided compiled regular 
+// Matches() returns true if a value matches a provided compiled regular
 // expression pattern.
-func Matches(val string, reg_ex *regexp.Regexp) bool  {
+func Matches(val string, reg_ex *regexp.Regexp) bool {
 	return reg_ex.MatchString(val)
 }
