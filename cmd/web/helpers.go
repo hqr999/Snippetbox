@@ -61,7 +61,7 @@ func (app *application) newTemplateData(r *http.Request) templateData {
 		//data this will return the empty string.
 
 		//Add the flash message to the template data, if one exists
-		Flash: app.sessionMangaer.PopString(r.Context(), "flash"),
+		Flash: app.sessionManager.PopString(r.Context(), "flash"),
 	}
 
 }
