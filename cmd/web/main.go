@@ -25,7 +25,7 @@ type application struct {
 	users          *models.UserModel
 	templateCache  map[string]*template.Template
 	formDecoder    *form.Decoder
-	sessionMangaer *scs.SessionManager
+	sessionManager *scs.SessionManager
 }
 
 func main() {
@@ -62,7 +62,7 @@ func main() {
 		users:          &models.UserModel{DB: db},
 		templateCache:  cachePageTmpl,
 		formDecoder:    formDecoder,
-		sessionMangaer: sessionMan,
+		sessionManager: sessionMan,
 	}
 
 	tlsConf := &tls.Config{
