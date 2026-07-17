@@ -33,7 +33,7 @@ type userLoginForm struct {
 func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Form = userSignupForm{}
-	app.render(w, r, 200, "signup.tmpl", data)
+	app.render(w, r, http.StatusOK, "signup.tmpl", data)
 
 }
 
@@ -148,7 +148,7 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 
 	// Add the ID of the current to the session, so that they are now
 	// 'logged in.'
-	app.sessionManager.Put(r.Context(), "authenticateUserID", id)
+	app.sessionManager.Put(r.Context(), "authenticatedUserID", id)
 
 	// Redirect the user to the create snippet page
 	http.Redirect(w, r, "/snippet/create", http.StatusSeeOther)
@@ -165,9 +165,9 @@ func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Remove the authenticateUserID from the session data so that the user is.
+	// Remove the authenticatedUserID from the session data so that the user is.
 	// 'logged out'.
-	app.sessionManager.Remove(r.Context(), "authenticateUserID")
+	app.sessionManager.Remove(r.Context(), "authenticatedUserID")
 
 	// Add a flash message to the session to confirm to the user that they have been
 	// logged out.
