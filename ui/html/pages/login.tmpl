@@ -3,6 +3,9 @@
 {{define "main"}}
 <form action="/user/login" method="post" novalidate>
   <!-- Notice that here we are looping over the Non_Field_Errors and displaying them, if any exists -->
+  
+  <!-- Include the CSRF token -->
+  <input type="hidden" name="csrf_token" value="{{.CSRF_Token}}">
   {{range .Form.Non_Field_Errors}}
     <div class='error'>{{.}}</div>
   {{end}}

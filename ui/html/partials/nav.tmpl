@@ -11,6 +11,8 @@
     <!-- Toogle the links based on authentication status -->
     {{if .IsAuth}}
       <form action="/user/logout" method="post">
+        <!-- Include the CSRF token -->
+        <input type="hidden" name="csrf_token" value="{{.CSRF_Token}}">
         <button>Logout</button>
      </form>
     {{else}} 

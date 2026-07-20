@@ -12,8 +12,8 @@ func (app *application) routes() http.Handler {
 	mux.Handle("GET /static/", http.StripPrefix("/static", file_server))
 
 
-	// Unprotected application routes using the "dynamic" middleware chain.
-	dynamic := alice.New(app.sessionManager.LoadAndSave)
+	// Use the nosurf middleware on all of our 'dynamic' routes.
+	dynamic := alice.New(app.sessionManager.LoadAndSave, preventCSRF)
 
 
 	mux.Handle("GET /{$}", dynamic.ThenFunc(app.home))
