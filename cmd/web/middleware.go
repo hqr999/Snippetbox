@@ -3,7 +3,22 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/justinas/nosurf" // New import
 )
+
+// Create a preventCSRF middleware function which uses a custom CSRF cookie with
+// the Secure, Path and HttpOnly attributes set.
+func preventCSRF(next http.Handler) http.Handler  {
+	csrfHandler := nosurf.New(next)
+	csrfHandler.SetBaseCookie(http.Cookie{
+			HttpOnly: true,
+			Path: "/",
+			Secure: true,
+	})
+
+	return csrfHandler
+}
 
 func commonHeaders(prx http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

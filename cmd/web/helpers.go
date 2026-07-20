@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-playground/form/v4"
+	"github.com/justinas/nosurf"
 )
 
 func (app *application) serverError(w http.ResponseWriter, r *http.Request, err error) {
@@ -64,6 +65,7 @@ func (app *application) newTemplateData(r *http.Request) templateData {
 		Flash: app.sessionManager.PopString(r.Context(), "flash"),
 		// Add the authentication status to the template data.
 		IsAuth: app.isAuthenticated(r),
+		CSRF_Token: nosurf.Token(r), //Add the CSRF token.
 	}
 
 }

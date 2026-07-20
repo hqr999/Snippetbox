@@ -16,6 +16,7 @@ type templateData struct {
 	Form 		 any
 	Flash    string //Add a Flash field to the templateData struct.
 	IsAuth bool // Add an isAuth field to the template struct 
+	CSRF_Token string // Add a CSRFToken field 
 }
 
 
