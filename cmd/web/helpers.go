@@ -43,10 +43,9 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 		app.serverError(w, r, err)
 		return
 	}
-	//Deliberate error: set a Content-Length header with an invalid (non-integer) 
+	//Deliberate error: set a Content-Length header with an invalid (non-integer)
 	//value. -> Testing for the fact the default http.Server log format is different from ours.
-//	w.Header().Set("Content-Length","this isn´t an integer!")
-
+	//	w.Header().Set("Content-Length","this isn´t an integer!")
 
 	w.WriteHeader(status)
 
@@ -64,7 +63,7 @@ func (app *application) newTemplateData(r *http.Request) templateData {
 		//Add the flash message to the template data, if one exists
 		Flash: app.sessionManager.PopString(r.Context(), "flash"),
 		// Add the authentication status to the template data.
-		IsAuth: app.isAuthenticated(r),
+		IsAuth:     app.isAuthenticated(r),
 		CSRF_Token: nosurf.Token(r), //Add the CSRF token.
 	}
 
@@ -98,10 +97,13 @@ func (app *application) decodePostForm(r *http.Request, dst any) error {
 	return err
 }
 
-
-
-// Return true if the current request is from an authenticated user, otherwise 
+// Return true if the current request is from an authenticated user, otherwise
 // return false.
-func (app *application) isAuthenticated(r *http.Request) bool  {
-	return app.sessionManager.Exists(r.Context(), "authenticatedUserID")
+func (app *application) isAuthenticated(r *http.Request) bool {
+	isAuth, ok := r.Context().Value(isAuthenticatedContextKey).(bool)
+	if !ok {
+		return false
+	}
+
+	return isAuth
 }
