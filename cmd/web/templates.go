@@ -2,23 +2,24 @@ package main
 
 import (
 	"html/template"
+	"io/fs"
 	"path/filepath"
 	"time"
 
 	"github.com/hqr999/Snippetbox/internal/models"
+	"github.com/hqr999/Snippetbox/ui"
 )
 
 // Include a Snippets field in the templateData struct.
 type templateData struct {
-	CurrYear int
-	Snippet  models.Snippet
-	Snippets []models.Snippet
-	Form 		 any
-	Flash    string //Add a Flash field to the templateData struct.
-	IsAuth bool // Add an isAuth field to the template struct 
-	CSRF_Token string // Add a CSRFToken field 
+	CurrYear   int
+	Snippet    models.Snippet
+	Snippets   []models.Snippet
+	Form       any
+	Flash      string //Add a Flash field to the templateData struct.
+	IsAuth     bool   // Add an isAuth field to the template struct
+	CSRF_Token string // Add a CSRFToken field
 }
-
 
 // Create a humanDate function which returns a nicely formatted string
 // representation of a time.Time object.
@@ -26,46 +27,44 @@ func humanDate(t time.Time) string {
 	return t.Format("02 Jan 2006 at 15:04")
 }
 
-//Initialize a template.FuncMap object and store it in  a global variable. This is 
-//essentially a string-keyed map which acts as a lookup between the names of our 
-//custom template functions and the functions themselves.
+// Initialize a template.FuncMap object and store it in  a global variable. This is
+// essentially a string-keyed map which acts as a lookup between the names of our
+// custom template functions and the functions themselves.
 var funcs = template.FuncMap{
-		"human_date": humanDate,
+	"human_date": humanDate,
 }
-
 
 func newTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
 
-	pgs, err := filepath.Glob("./ui/html/pages/*.tmpl")
+	// Use fs.Glob() to get a slice of all filepaths in the ui.Files embedded
+	// filesystem which match the pattern 'html/pages/*.tmpl'. This essentially
+	// gives us a slice of all the 'page' templates for the application, just
+	// like before.
+	pgs, err := fs.Glob(ui.Files, "html/pages/*.tmpl")
 	if err != nil {
 		return nil, err
 	}
 
-	for _, val := range pgs {
-		name := filepath.Base(val)
-		
-		// The template.FuncMap must be registered with the template set before you
-   // call the ParseFiles() method. This means we have to use template.New() to
-  // create an empty template set, use the Funcs() method to register the
- // template.FuncMap, and then parse the file as normal.
-		temp_s, err := template.New(name).Funcs(funcs).ParseFiles("./ui/html/base.tmpl")
+	for _, pg := range pgs {
+
+		name := filepath.Base(pg)
+
+		// Create a slice containing the filepath patterns for the template we
+		// want to parse.
+		patterns := []string{
+			"html/base.tmpl",
+			"html/partials/*.tmpl",
+			pg,
+		}
+
+		// Use ParseFS() instead of ParseFiles() to parse the template files
+		// from thne ui.Files filesystem.
+		ts, err := template.New(name).Funcs(funcs).ParseFS(ui.Files, patterns...)
 		if err != nil {
 			return nil, err
 		}
-
-		temp_s, err = temp_s.ParseGlob("./ui/html/partials/*.tmpl")
-		if err != nil {
-			return nil, err
-		}
-
-		temp_s, err = temp_s.ParseFiles(val)
-		if err != nil {
-			return nil, err
-		}
-
-		cache[name] = temp_s
-
+		cache[name] = ts
 	}
 
 	return cache, nil
