@@ -3,6 +3,8 @@ package main
 import (
 	"testing"
 	"time"
+
+	"github.com/hqr999/Snippetbox/internal/assert"
 )
 
 func TestHumanDate(t *testing.T) {
@@ -31,17 +33,17 @@ func TestHumanDate(t *testing.T) {
 		},
 	}
 	// Loop over the test cases
-	for _, v := range testes {
+	for _, tt := range testes {
 		// Use the t.Run() function to run a sub-test for each case. The
 		// first param to this is the name of the test (used to identify the
 		// sub-test in any log output) and the second param is an anonymous
 		// function containing the actual test for each case.
-		t.Run(v.name, func(t *testing.T) {
-			hd := humanDate(v.tm)
+		t.Run(tt.name, func(t *testing.T) {
+			hd := humanDate(tt.tm)
 
-			if hd != v.want {
-				t.Errorf("got %q; want %q", hd, v.want)
-			}
+			// Use the new assert.Equal() helper to compare the expected and 
+			// actual values. 
+			assert.Equal(t,hd,tt.want)
 
 		})
 	}
