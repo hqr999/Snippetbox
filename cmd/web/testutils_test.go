@@ -8,13 +8,43 @@ import (
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"testing"
+	"time"
+
+	"github.com/alexedwards/scs/v2"
+	"github.com/go-playground/form/v4"
+	"github.com/hqr999/Snippetbox/internal/models/mocks"
 )
 
 // Create a newTestApplication helper which returns an instance of our
 // application struct containing mocked dependencies.
 func newTestApplication(t *testing.T) *application {
-	return &application{logger: slog.New(slog.DiscardHandler)}
+	// Create an instance of the template cache. 
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		t.Fatal(err)
+	} 
 
+	// Add a form decoder 
+	formDecoder := form.NewDecoder()
+
+
+	// And a session manager instance. Note that we use the same settings as 
+	// production, except that we don´t set a Store for session manager. 
+	// If no store is set, the SCS package will default to using a transient 
+	// in-memory store, which is ideal for testing purposes. 
+	sessionManager := scs.New() 
+	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = true 
+
+	return &application{
+		logger: slog.New(slog.DiscardHandler),
+		snippets: &mocks.SnippetModel{}, //Use the mock 
+		users: &mocks.UserModel{}, //Use the mock 
+		templateCache: templateCache,
+		formDecoder: formDecoder,
+		sessionManager: sessionManager,
+
+	}
 }
 
 // Define a custom testServer type which embeds an httptest.Server instance.

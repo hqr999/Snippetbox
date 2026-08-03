@@ -18,24 +18,6 @@ func Equal[T any](t *testing.T, got, want T) {
 	}
 }
 
-// Add a helper to check that a value is true.
-func True(t *testing.T, got bool) {
-	t.Helper()
-
-	if !got {
-		t.Errorf("got: %t; want: true", got)
-	}
-}
-
-// Add a helper to check that a value is nil, using the isNil() function below.
-func Nil(t *testing.T, got any) {
-	t.Helper()
-
-	if !isNil(got) {
-		t.Errorf("got: %v; want: nil", got)
-	}
-}
-
 func isEqual[T any](got, want T) bool {
 	// First check if both values are nil using the isNil() function below.
 	if isNil(got) && isNil(want) {
@@ -64,4 +46,48 @@ func isNil(v any) bool {
 	// Other types like string, bool, int, float are never nil.
 	return false
 
+}
+
+func NotEqual[T comparable](t *testing.T, got, want T) {
+	t.Helper()
+
+	if got == want {
+		t.Errorf("got: %v; expected values to be different", got)
+	}
+}
+
+// Add a helper to check that a value is true.
+func True(t *testing.T, got bool) {
+	t.Helper()
+
+	if !got {
+		t.Errorf("got: false; want: true")
+	}
+}
+
+
+func False(t *testing.T, got bool) {
+
+	t.Helper()
+
+	if got {
+		t.Errorf("got: true; want: false")
+	}
+
+}
+
+func Nil(t *testing.T, got any) {
+	t.Helper()
+
+	if got != nil {
+		t.Errorf("got: %v; want: nil", got)
+	}
+}
+
+func NotNil(t *testing.T, got any) {
+	t.Helper()
+
+	if got == nil {
+		t.Errorf("got: nil; want: non-nil")
+	}
 }
