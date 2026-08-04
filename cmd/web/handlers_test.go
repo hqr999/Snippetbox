@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -86,4 +87,132 @@ func TestPing(t *testing.T) {
 	res := t_server.get(t, "/ping")
 	assert.Equal(t, res.status, http.StatusOK)
 	assert.Equal(t, res.body, "OK")
+}
+
+func TestUserSignup(t *testing.T) {
+	// Create the application struct containing our mocked dependencies and
+	// establish a new test server.
+	app := newTestApplication(t)
+	test_server := newTestServer(t, app.routes())
+	defer test_server.Close()
+
+	const (
+		validName     = "Bob"
+		validPassword = "validPa$$word"
+		validEmail    = "bob@example.com"
+		formTag       = `<form action="/user/signup" method="post" novalidate`
+	)
+
+	tests := []struct {
+		name              string
+		userName          string
+		userEmail         string
+		userPassword      string
+		useValidCSRFToken bool
+		wantStatus        int
+		wantFormTag       string
+	}{
+		{
+			name:              "Valid Submission",
+			userName:          validName,
+			userEmail:         validEmail,
+			userPassword:      validPassword,
+			useValidCSRFToken: true,
+			wantStatus:        http.StatusSeeOther,
+		},
+		{
+			name:              "Invalid CSRF Token",
+			userName:          validName,
+			userEmail:         validEmail,
+			userPassword:      validPassword,
+			useValidCSRFToken: false,
+			wantStatus:        http.StatusBadRequest,
+		},
+		{
+			name:              "Empty Name",
+			userName:          "",
+			userEmail:         validEmail,
+			userPassword:      validPassword,
+			useValidCSRFToken: true,
+			wantStatus:        http.StatusUnprocessableEntity,
+			wantFormTag:       formTag,
+		},
+		{
+			name:              "Empty Email",
+			userName:          validName,
+			userEmail:         "",
+			userPassword:      validPassword,
+			useValidCSRFToken: true,
+			wantStatus:        http.StatusUnprocessableEntity,
+			wantFormTag:       formTag,
+		},
+		{
+			name:              "Empty Password",
+			userName:          validName,
+			userEmail:         validEmail,
+			userPassword:      "",
+			useValidCSRFToken: true,
+			wantStatus:        http.StatusUnprocessableEntity,
+			wantFormTag:       formTag,
+		},
+		{
+			name:              "Invalid Email",
+			userName:          validName,
+			userEmail:         "bob@example.",
+			userPassword:      validPassword,
+			useValidCSRFToken: true,
+			wantStatus:        http.StatusUnprocessableEntity,
+			wantFormTag:       formTag,
+		},
+		{
+			name:              "Short Password",
+			userName:          validName,
+			userEmail:         validEmail,
+			userPassword:      "pa$$",
+			useValidCSRFToken: true,
+			wantStatus:        http.StatusUnprocessableEntity,
+			wantFormTag:       formTag,
+		},
+		{
+			name:              "Duplicate Email",
+			userName:          validName,
+			userEmail:         "dupe@example.com",
+			userPassword:      validPassword,
+			useValidCSRFToken: true,
+			wantStatus:        http.StatusUnprocessableEntity,
+			wantFormTag:       formTag,
+		},
+	}
+
+	for _, v := range tests {
+		t.Run(v.name, func(t *testing.T) {
+			// Reset the cookie jar for each sub-test.
+			test_server.resetClientCookieJar(t)
+
+			// Make a GET /user/signup request. This will automatically
+			// add the CSRF cookie from the response to the test clients cookie
+			// jar, and we can extract the CSRF token from the response body.
+			res := test_server.get(t, "/user/signup")
+
+			// Build up the form values for the sub-test, including the CSRF
+			// token if appropriate.
+			form := url.Values{}
+			form.Add("name", v.userName)
+			form.Add("email", v.userEmail)
+			form.Add("password", v.userPassword)
+			if v.useValidCSRFToken {
+				form.Add("csrf_token", extractCSRFToken(t, res.body))
+			}
+
+			// Make the POST /user/signup request using the form values we
+			// created above. The request will automatically include the CSRF
+			// cookie from the test client´s cookie jar.
+			res = test_server.postForm(t, "/user/signup", form)
+
+			// And finally, test the response data.
+			assert.Equal(t, res.status, v.wantStatus)
+			assert.True(t, strings.Contains(res.body, v.wantFormTag))
+
+		})
+	}
 }
