@@ -2,11 +2,15 @@ package main
 
 import (
 	"bytes"
+	"html"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
+	"net/url"
+	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,32 +22,30 @@ import (
 // Create a newTestApplication helper which returns an instance of our
 // application struct containing mocked dependencies.
 func newTestApplication(t *testing.T) *application {
-	// Create an instance of the template cache. 
+	// Create an instance of the template cache.
 	templateCache, err := newTemplateCache()
 	if err != nil {
 		t.Fatal(err)
-	} 
+	}
 
-	// Add a form decoder 
+	// Add a form decoder
 	formDecoder := form.NewDecoder()
 
-
-	// And a session manager instance. Note that we use the same settings as 
-	// production, except that we don´t set a Store for session manager. 
-	// If no store is set, the SCS package will default to using a transient 
-	// in-memory store, which is ideal for testing purposes. 
-	sessionManager := scs.New() 
+	// And a session manager instance. Note that we use the same settings as
+	// production, except that we don´t set a Store for session manager.
+	// If no store is set, the SCS package will default to using a transient
+	// in-memory store, which is ideal for testing purposes.
+	sessionManager := scs.New()
 	sessionManager.Lifetime = 12 * time.Hour
-	sessionManager.Cookie.Secure = true 
+	sessionManager.Cookie.Secure = true
 
 	return &application{
-		logger: slog.New(slog.DiscardHandler),
-		snippets: &mocks.SnippetModel{}, //Use the mock 
-		users: &mocks.UserModel{}, //Use the mock 
-		templateCache: templateCache,
-		formDecoder: formDecoder,
+		logger:         slog.New(slog.DiscardHandler),
+		snippets:       &mocks.SnippetModel{}, //Use the mock
+		users:          &mocks.UserModel{},    //Use the mock
+		templateCache:  templateCache,
+		formDecoder:    formDecoder,
 		sessionManager: sessionManager,
-
 	}
 }
 
@@ -122,4 +124,55 @@ func (t_server *testServer) get(t *testing.T, url_path string) testResp {
 	}
 
 	return testResp{res.StatusCode, res.Header, res.Cookies(), string(bytes.TrimSpace(body))}
+}
+
+func extractCSRFToken(t *testing.T, body string) string {
+
+	// Define a regex which captures the CSRF value from the
+	// HTML for our signup page.
+	csrfTokenRegex := regexp.MustCompile(`<input type="hidden" name="csrf_token" value="(.+)">`)
+
+	// Use the FindStringSubmatch method to extract the token from the HTML body.
+	// Note that this reutrns a slice with the entire matched pattern in the
+	// first position, and the values of any captured data in the subsequent
+	// positions.
+	matches_found := csrfTokenRegex.FindStringSubmatch(body)
+	if len(matches_found) < 2 {
+		t.Fatal("no csrf on the html body.")
+
+	}
+
+	return html.UnescapeString(matches_found[1])
+}
+
+// Create a postForm method for sending POST requests to the test server. The
+// final parameter to this method is a url.Values map which can contain any
+// form data that you want to send in the request body.
+func (test_server *testServer) postForm(t *testing.T, urlPath string, form url.Values) testResp {
+	req, err := http.NewRequest(http.MethodPost, test_server.URL+urlPath, strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Set the appropriate Content-Type header for form data and the Sec-Fetch-Site
+	// header.
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+
+	res, err := test_server.Client().Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return testResp{
+		status:  res.StatusCode,
+		headers: res.Header,
+		cookies: res.Cookies(),
+		body:    string(bytes.TrimSpace(body)),
+	}
 }
