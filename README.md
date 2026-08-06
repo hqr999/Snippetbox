@@ -25,8 +25,8 @@ The layout of the signup page.
 
 ## To do 
 - [ ] Use Docker and Docker Compose for our MySQL database connection, instead of needing to have MySQL installed on our machine.
-- [ ] Implement SQL Migrations with Go.
-- [ ] Using enviroment variables for db sonnection.
+- [ ] Implement SQL Migrations with Goose.
+- [ ] Using enviroment variables for db connection.
 - [ ] Adapt the database testing to reflect the migrations.
 
 
