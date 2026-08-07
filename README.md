@@ -22,9 +22,26 @@ When you logout of your account a message from scs package appears informing you
 The layout of the signup page.
 ![signup](screenshots/signup.png)
 
+## How to run 
+To run the application just 3 steps are needed:
+* **Run the docker compose** application that will create a the MySQL database and the Adminer which is a front end you can use to access the DB:
+```
+docker compose up -d 
+```
+
+* **Run the bash script** this bash script will automatically create the necessary tables for our database:
+```
+sudo chmod +x setup-db.sh 
+./setup-db.sh 
+```
+* **Run the go application** this will trigger the go web server that runs the code: 
+```
+go run ./cmd/web
+```
+
 
 ## To do 
-- [ ] Use Docker and Docker Compose for our MySQL database connection, instead of needing to have MySQL installed on our machine.
+- [x] Use Docker and Docker Compose for our MySQL database connection, instead of needing to have MySQL installed on our machine.
 - [ ] Implement SQL Migrations with Goose.
 - [ ] Using enviroment variables for db connection.
 - [ ] Adapt the database testing to reflect the migrations.

@@ -30,7 +30,8 @@ type application struct {
 
 func main() {
 	addr := flag.String("addr", ":4000", "HTTP network address")
-	dsn := flag.String("dsn", "web:gintoki@/snippetbox?parseTime=true", "MySQL data source name")
+	// Connection to MySQL running on Docker.
+	dsn := flag.String("dsn", "web:gintoki@tcp(localhost:3308)/snippetbox?parseTime=true", "MySQL data source name")
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
