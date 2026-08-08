@@ -28,13 +28,7 @@ To run the application just 3 steps are needed:
 ```
 docker compose up -d 
 ```
-
-* **Run the bash script** this bash script will automatically create the necessary tables for our database:
-```
-sudo chmod +x setup-db.sh 
-./setup-db.sh 
-```
-* **Run the go application** this will trigger the go web server that runs the code: 
+* **Run the go application** this will trigger the go web server that runs the code and automatically creates the database tables: 
 ```
 go run ./cmd/web
 ```
@@ -42,7 +36,7 @@ go run ./cmd/web
 
 ## To do 
 - [x] Use Docker and Docker Compose for our MySQL database connection, instead of needing to have MySQL installed on our machine.
-- [ ] Implement SQL Migrations with Goose.
+- [x] Implement SQL Migrations with Goose.
 - [ ] Using enviroment variables for db connection.
 - [ ] Adapt the database testing to reflect the migrations.
 
